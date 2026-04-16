@@ -724,3 +724,69 @@ Follow the predefined templates in your project repository to record the details
 > A successful test is confirmed when a scan from the Kali VM results in an automated block, an alert in the Wazuh manager, and a corresponding entry in the ELK dashboard.
 
 
+
+
+# Troubleshooting Tips
+
+If you encounter issues during deployment or testing, use the following steps to diagnose and optimize your environment.
+
+### 1. Monitor Key Logs
+Check the following logs on the **Wazuh Server** and **Endpoints** to identify errors in detection or response:
+
+* **Wazuh Manager/Agent Logs**:
+    ```bash
+    tail -f /var/ossec/logs/ossec.log
+    ```
+
+* **Suricata Event Logs**:
+    ```bash
+    tail -f /var/log/suricata/eve.json
+    ```
+
+* **Active Response Execution Logs**:
+    ```bash
+    tail -f /var/ossec/logs/active-responses.log
+    ```
+
+### 2. Prevent Self-Lockout
+
+To avoid accidentally blocking your own management or attack machine during testing, whitelist your **Kali Linux IP** in the Wazuh global configuration:
+
+1.  **Open ossec.conf**:
+    ```bash
+    sudo nano /var/ossec/etc/ossec.conf
+    ```
+
+2.  **Add your IP to the `<global>` section**:
+    Locate the `<global>` block and add your specific IP address to the whitelist to ensure the Active Response module ignores traffic from your machine.
+
+    ```xml
+    <global>
+      <white_list>127.0.0.1</white_list>
+      <white_list>YOUR_KALI_IP</white_list>
+    </global>
+    ```
+
+3.  **Restart the manager**:
+    Apply the changes by restarting the Wazuh service:
+    ```bash
+    sudo systemctl restart wazuh-manager
+    ```
+
+### 3. Resource Management
+
+Running a full SOC lab can be hardware-intensive. Follow these tips to maintain stability and prevent host system crashes.
+
+* **Host Performance**: Close unnecessary browser tabs and background applications on your physical host while the VMs are running to free up CPU cycles and physical RAM.
+* **VM RAM Allocation**:
+    * If the installation process is hanging or extremely slow, temporarily increase the **Wazuh VM RAM to 10 GB**.
+    * Once the installation is complete, you can scale it back down to **6 GB - 8 GB** for regular operation.
+
+---
+
+> [!TIP]
+> **Proactive Monitoring**
+> Use the `top` or `htop` command on your Linux VMs to monitor real-time CPU and RAM consumption if the system becomes unresponsive.
+
+
+    
